@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+
+<script>
+{% block jquery %}
+
+
+
+$("#submit").click(function(e){
+    e.preventDefault();
+    var submitBTN = $(this)
+    submitBTN.attr("disabled", "disabled")
+    var username = $("#username").val()
+    var password = $("#password").val()
+    var encodedString = btoa(username + ":" + password)
+    var endPoint = "http://localhost:8000/api/v1/login/?format=json"
+    $.ajax({
+        type: "GET",
+        url: endPoint,
+        data: {},
+        success: function(data){
+            userApikey = data.objects[0].api_key
+            $.mobile.navigate("#two");
+        },
+        beforeSend: function(xhr){
+            xhr.setRequestHeader("Authorization", "Basic " + encodedString)
+        },
+        error: function(data){
+        },
+        complete: function(){
+            submitBTN.prop("disabled", false)
+        }
+    })
+});
+{% endblock %}
+</script>
+
+{% block content %}
+<form>
+<input type="text" name="username" id="username"/>
+<input type="password" name="password" id="password"/>
+<input type="submit" value="Login" id="submit"/>
+</form>
+
+{% endblock %}
