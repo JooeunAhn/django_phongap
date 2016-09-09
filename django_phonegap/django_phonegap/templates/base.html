@@ -10,18 +10,13 @@
     <script src="http://demos.jquerymobile.com/1.4.5/js/jquery.js"></script>
     <script src="http://demos.jquerymobile.com/1.4.5/_assets/js/index.js"></script>
     <script src="http://demos.jquerymobile.com/1.4.5/js/jquery.mobile-1.4.5.min.js"></script>
+    {% include 'jquery.html' %}
     <script type="text/javascript">
+
         $(document).ready(function(){
-            $userApikey = ""
+
             {% block jquery %}
             {% endblock %}
-            $(window).on("navigate", function(event){
-                var pageId = $.mobile.activePage.attr("id")
-                if (pageId == "two"){
-                    console.log(userApikey);
-                    $("#" + pageId + " .ui-content").html("<h1>hello there</h1>");
-                }
-            });
         });
     </script>
 </head>
@@ -47,6 +42,7 @@
     </div><!-- /content -->
 
     <div data-role="footer" data-theme="a">
+
         <h4>Page Footer</h4>
     </div><!-- /footer -->
 </div><!-- /page one -->
@@ -67,9 +63,28 @@
     </div><!-- /content -->
 
     <div data-role="footer">
+    <a href="#" id="newRecord">Add New Record</a>
         <h4>Page Footer</h4>
     </div><!-- /footer -->
 </div><!-- /page two -->
+
+<div data-role="page" id="listPage" data-theme="a">
+
+    <div data-role="header">
+        <h1>list Page</h1>
+    </div><!-- /header -->
+
+    <div role="main" class="ui-content" >
+        <ul data-role="listview" id="listPostings">
+            <li>Item 1</li>
+            <li>Item 2</li>
+        </ul>
+    </div><!-- /content -->
+    <div data-role="footer">
+        <h4>Page Footer</h4>
+    </div><!-- /footer -->
+</div><!-- /page two -->
+
 
 <!-- Start of third page: #popup -->
 <div data-role="page" id="popup">
