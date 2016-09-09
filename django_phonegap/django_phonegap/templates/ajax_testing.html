@@ -5,6 +5,15 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Hustle real hard</title>
+
+    <!--
+    <style type="text/css">
+    .sectionHiddenDiv {
+        display: none;
+    }
+    </style>
+    -->
+
     <script src="http://demos.jquerymobile.com/1.4.5/js/jquery.js"></script>
 
     <script type="text/javascript">
@@ -53,12 +62,14 @@
                 var data = JSON.stringify({
                     "title":postingData,
                     "url": urlLink,
-                })
+                });
                 $.ajax({
                     type: "POST",
                     url: endPoint,
                     data: data,
                     contentType: "application/json",
+                    dataType:"json",
+
                     success: function(data){
                         console.log(data);
                         $("#listPostings").prepend("<li>"+postingData+" "+urlLink +"</li>")
@@ -67,10 +78,23 @@
                         xhr.setRequestHeader("Authorization", "ApiKey " + newApiString)
                     },
                     error: function(data){
-                        console.log(data);
+                        $("#postError").fadeIn();
+                        if (data.responseJSON){
+                            var theError = data.responseJSON.posting;
+                            console.log(theError);
+                            $.each(theError, function(key, value){
+                                console.log(key);
+                                console.log(value);
+                                $("#postError").text(value);
+                            });
+                        }
+                        else {
+                            $("#listPostings").prepend("<li class=\"ui-li-static ui-body-inherit\"> <a href="+urlLink+">"+postingData+"</a></li")
+                        }
+
                     },
                     complete: function(data){
-                        console.log(data);
+                        console.log("finished")
                     }
                 })
             }
@@ -80,12 +104,32 @@
             }
         });
 
+
+        function convertToYoutube(youtubeShareLink){
+            var embedCode = "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/" + youtubeShareLink + "\" frameborder=\"0\" allowfullscreen></iframe>"
+            return embedCode
+        }
+
         function parseData(object){
-            console.log(object);
+            //console.log(object);
+            $(".listItemLink").click(function(e){
+                e.preventDefault();
+                var sectionId = "page-" + $(this).attr("id");
+                $("[data-id='"+ sectionId +"']").fadeIn();
+            })
             var title = object[0].title;
             var url = object[0].url;
             var objID = object[0].id;
-            var htmlText = "<li class=\"ui-li-static ui-body-inherit\" id='" + objID + "' >"+ title + " " + url +"</li>"
+            var htmlLink = "<a href='"+url+"' class='listItemLink'id='" + objID + "' >" + title + "</a>"
+            var htmlText = "<li class=\"ui-li-static ui-body-inherit\">"+ htmlLink +"</li>"
+
+            var re = new RegExp("/([A-Za-z0-9_\-]{11})/")
+
+            var newUrl = url.match(/([A-Za-z0-9_\-]{11})/)[0];
+            console.log(newUrl);
+            var youTubeData = convertToYoutube(newUrl);
+            var addSection = "<div class='sectionHiddenDiv' data-id='page-" + objID +"'>" + youTubeData + "</div>"
+            $("#newPostContent").append(addSection)
             return htmlText
         }
 
@@ -103,7 +147,7 @@
                     var objectArray = data.objects;
                     $.each(objectArray, function(){
                         var listItemSingle = $(this);
-                        htmlTextResult = parseData(listItemSingle);
+                        var htmlTextResult = parseData(listItemSingle);
                         $(listId).append(htmlTextResult);
                         console.log($(this))
                     })
@@ -123,7 +167,6 @@
         $(window).on("navigate", function(event){
             var pageId = $.mobile.activePage.attr("id")
             if (pageId == "two"){
-                console.log(userApikey);
                 $("#" + pageId + " .ui-content").html("<form id='postForm' ><input type='text' id='postText'/></form>");
             }
             else if(pageId=="listPage"){
@@ -150,9 +193,8 @@
 </ul>
 </div>
 
-<div class="content" style="display:none;">
+<div class="content" id="newPostContent" style="display:none;">
 <h1>New Post</h1>
-
 <span id="postError" style="color:red;"></span></hr>
 <input type="text" id="postText" />
 <input type="text" id="urlLink" />
