@@ -1,9 +1,12 @@
+from django.contrib.auth import get_user_model
+
 from tastypie.models import ApiKey
 from tastypie.authorization import DjangoAuthorization
 from tastypie.authentication import ApiKeyAuthentication, BasicAuthentication, MultiAuthentication
 from tastypie.resources import ModelResource
+from tastypie.exceptions import BadRequest
 
-from django.contrib.auth import get_user_model
+from django_phonegap.corsresource import CorsResourceBase
 
 
 User = get_user_model()

@@ -31,7 +31,7 @@
     </div><!-- /header -->
 
     <div role="main" class="ui-content">
-        <h2>One</h2>
+        <h2>Login</h2>
 
         {% block content %}
 
@@ -73,17 +73,21 @@
     <div data-role="header">
         <h1>list Page</h1>
     </div><!-- /header -->
-
     <div role="main" class="ui-content" >
         <ul data-role="listview" id="listPostings">
-            <li>Item 1</li>
-            <li>Item 2</li>
         </ul>
     </div><!-- /content -->
     <div data-role="footer">
         <h4>Page Footer</h4>
     </div><!-- /footer -->
+        <span id="postError" style="color:red;"></span></hr>
+        <form>
+            <input type="text" id="postText" value="title">
+            <input type="text" id="urlLink" value="YoutubeURL">
+            <input type="button" id="test" value="New Post">
+        </form>
 </div><!-- /page two -->
+
 
 
 <!-- Start of third page: #popup -->

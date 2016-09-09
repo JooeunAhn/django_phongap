@@ -29,31 +29,91 @@ $(document).ready(function(){
         })
     });
 
-    $("#newRecord").click(function(e){
+
+    function getHtmlPageForPost(title, id, content){
+        var htmlPage = "<div class='sectionHiddenDiv' data-role=\"page\" id=\"page-"+id+"\"><div data-role=\"header\"><h1>" + title + "</h1></div><!-- /header --><div role=\"main\" class=\"ui-content\"><h2>"+ title +"</h2>"+ content +"</div><!-- /content --><div data-role=\"footer\" data-theme=\"a\"><h4>Page Footer</h4></div><!-- /footer --></div><!-- /page one -->";
+        return htmlPage;
+    }
+
+    function getHtmlListPageForRefresh(){
+        var htmlPage = "<div data-role=\"page\" id=\"listPage\" data-theme=\"a\"><div data-role=\"header\"><h1>list Page</h1></div><!-- /header --><div role=\"main\" class=\"ui-content\" ><ul data-role=\"listview\" id=\"listPostings\"><li>Item 1</li><li>Item 2</li></ul></div><!-- /content --><div data-role=\"footer\"><h4>Page Footer</h4></div><!-- /footer --></div><!-- /page two -->"
+        return htmlPage;
+    }
+
+    function convertToYoutube(youtubeShareLink){
+        var embedCode = "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/" + youtubeShareLink + "\" frameborder=\"0\" allowfullscreen></iframe>"
+        return embedCode
+        }
+
+    function YoutubeEmbed(object){
+        var url = object[0].url;
+        var newUrl = url.match(/([A-Za-z0-9_\-]{11})/)[0];
+        var youTubeData = convertToYoutube(newUrl);
+        return youTubeData
+    }
+
+    $("#test").click(function(e){
         e.preventDefault();
         var newApiString = username + ":" + userApikey
         var endPoint = "http://localhost:8000/api/v1/posting/"
-        var data = JSON.stringify({
-            "post":"'" + $("#postText").val() +"'",
-        })
-        $.ajax({
-            type: "POST",
-            url: endPoint,
-            data: data,
-            contentType: "application/json",
-            success: function(data){
-                console.log(data);
-            },
-            beforeSend: function(xhr){
-                xhr.setRequestHeader("Authorization", "ApiKey " + newApiString)
-            },
-            error: function(data){
-                console.log(data);
-            },
-            complete: function(data){
-                console.log(data);
-            }
-        })
+        var postingData = $("#postText").val()
+        var urlLink = $("#urlLink").val()
+        if (postingData.length >= 1 && urlLink.length != 1){
+            $("#postError").fadeOut();
+            var data = JSON.stringify({
+                "title":postingData,
+                "url": urlLink,
+            });
+            $.ajax({
+                type: "POST",
+                url: endPoint,
+                data: data,
+                contentType: "application/json",
+                dataType:"json",
+                success: function(data){
+                    console.log(data);
+                    $("#listPostings").prepend("<li>"+postingData+" "+urlLink +"</li>")
+                },
+                beforeSend: function(xhr){
+                    xhr.setRequestHeader("Authorization", "ApiKey " + newApiString)
+                },
+                error: function(data){
+                    if (data.responseJSON){
+                        $("#postError").fadeIn();
+                        var theError = data.responseJSON.posting;
+                        console.log(theError);
+                        $.each(theError, function(key, value){
+                            console.log(key);
+                            console.log(value);
+                            $("#postError").text(value);
+                        });
+                    }
+                    else {
+                        var newUrl = urlLink.match(/([A-Za-z0-9_\-]{11})/)[0];
+                        var youTubeData = convertToYoutube(newUrl);
+                        var num = $(".sectionHiddenDiv:last-child").attr("id");
+                        if(num){
+                            var num = num.slice(5);
+                            num++;
+                        }
+                        else{
+                            num = 1;
+                        }
+                        $("#listPostings").prepend("<li class=\"ui-li-static ui-body-inherit\"> <a href=#page-"+num+">"+postingData+"</a></li");
+                        var htmlPage = getHtmlPageForPost(postingData, num, youTubeData);
+                        $("body").append(htmlPage);
+                    }
+
+                },
+                complete: function(data){
+                    console.log("finished")
+                }
+            })
+        }
+        else{
+            $("#postError").fadeIn();
+            $("#postError").text("empty");
+        }
     });
 
     function getPostingData(listId){
@@ -68,10 +128,15 @@ $(document).ready(function(){
             contentType: "application/json",
             success: function(data){
                 var objectArray = data.objects;
+                var i = 0;
+                $(listId).html(getHtmlListPageForRefresh());
                 $.each(objectArray, function(){
                     var listItemSingle = $(this);
-                    $(listId).append("<li class=\"ui-li-static ui-body-inherit\">"+listItemSingle[0].post+"</li>" );
-                    console.log($(this))
+                    i++;
+                    var youtubeEmbedUrl = YoutubeEmbed(listItemSingle);
+                    var htmlPage = getHtmlPageForPost(listItemSingle[0].title, i, youtubeEmbedUrl)
+                    $("body").append(htmlPage);
+                    $(listId).append("<li class=\"ui-li-static ui-body-inherit\"><a href='#page-"+ i +"'>" + listItemSingle[0].title+"</a></li>" );
                 })
             },
             beforeSend: function(xhr){
@@ -86,6 +151,7 @@ $(document).ready(function(){
         })
     }
 
+
     $(window).on("navigate", function(event){
         var pageId = $.mobile.activePage.attr("id")
         if (pageId == "two"){
@@ -95,7 +161,7 @@ $(document).ready(function(){
         else if(pageId=="listPage"){
             getPostingData("#listPostings");
         }
+        });
     });
-});
 
 </script>

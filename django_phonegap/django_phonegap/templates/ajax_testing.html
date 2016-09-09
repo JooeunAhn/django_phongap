@@ -51,6 +51,11 @@
             })
         });
 
+        function convertToYoutube(youtubeShareLink){
+            var embedCode = "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/" + youtubeShareLink + "\" frameborder=\"0\" allowfullscreen></iframe>"
+            return embedCode
+        }
+
         $("#newRecord").click(function(e){
             e.preventDefault();
             var newApiString = username + ":" + userApikey
@@ -69,7 +74,6 @@
                     data: data,
                     contentType: "application/json",
                     dataType:"json",
-
                     success: function(data){
                         console.log(data);
                         $("#listPostings").prepend("<li>"+postingData+" "+urlLink +"</li>")
@@ -89,7 +93,14 @@
                             });
                         }
                         else {
+                            var num = $(".sectionHiddenDiv").attr("data-id");
+                            var num = num.slice(5);
+                            num++;
                             $("#listPostings").prepend("<li class=\"ui-li-static ui-body-inherit\"> <a href="+urlLink+">"+postingData+"</a></li")
+                            var youTubeData = convertToYoutube(urlLink);
+                            var addSection = "<div class='sectionHiddenDiv' data-id='page-"+youTubeData + "</div>";
+                            console.log(addSection);
+                            $("#newPostContent").append(addSection);
                         }
 
                     },
@@ -103,12 +114,6 @@
                 $("#postError").text("empty");
             }
         });
-
-
-        function convertToYoutube(youtubeShareLink){
-            var embedCode = "<iframe width=\"560\" height=\"315\" src=\"https://www.youtube.com/embed/" + youtubeShareLink + "\" frameborder=\"0\" allowfullscreen></iframe>"
-            return embedCode
-        }
 
         function parseData(object){
             //console.log(object);
