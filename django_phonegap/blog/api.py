@@ -14,7 +14,7 @@ User = get_user_model()
 class PostingResource(ModelResource):
     class Meta:
         queryset = Posting.objects.all()
-        fields = ["user", "post"]
+        fields = ["user", "title", "url","id"]
         allowed_method = ['get',"post"]
         resource_name = 'posting'
         authorization = DjangoAuthorization()
@@ -26,7 +26,8 @@ class PostingResource(ModelResource):
     def obj_create(self, bundle, request=None, **kwargs):
         try:
             bundle.obj.user = bundle.request.user
-            bundle.obj.post = bundle.data.get('post')
+            bundle.obj.title = bundle.data.get('title')
+            bundle.obj.url = bundle.data.get("url")
             bundle.obj.save()
         except:
             raise BadRequest("Some error with your data")

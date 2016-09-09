@@ -12,7 +12,7 @@ User = get_user_model()
 class LoginResource(ModelResource):
     class Meta:
         queryset = User.objects.all()
-        fields = ["first_name", "last_name", "username"]
+        fields = ["first_name", "last_name", "username",]
         allowed_method = ['get']
         resource_name = 'login'
         authorization = DjangoAuthorization()

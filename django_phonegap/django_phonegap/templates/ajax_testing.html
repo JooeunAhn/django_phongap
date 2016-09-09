@@ -47,10 +47,12 @@
             var newApiString = username + ":" + userApikey
             var endPoint = "http://localhost:8000/api/v1/posting/"
             var postingData = $("#postText").val()
-            if (postingData.length >= 1){
+            var urlLink = $("#urlLink").val()
+            if (postingData.length >= 1 && urlLink.length != 1){
                 $("#postError").fadeOut();
                 var data = JSON.stringify({
-                    "post":postingData,
+                    "title":postingData,
+                    "url": urlLink,
                 })
                 $.ajax({
                     type: "POST",
@@ -59,7 +61,7 @@
                     contentType: "application/json",
                     success: function(data){
                         console.log(data);
-                        $("#listPostings").prepend("<li>"+postingData+"</li>")
+                        $("#listPostings").prepend("<li>"+postingData+" "+urlLink +"</li>")
                     },
                     beforeSend: function(xhr){
                         xhr.setRequestHeader("Authorization", "ApiKey " + newApiString)
@@ -78,6 +80,15 @@
             }
         });
 
+        function parseData(object){
+            console.log(object);
+            var title = object[0].title;
+            var url = object[0].url;
+            var objID = object[0].id;
+            var htmlText = "<li class=\"ui-li-static ui-body-inherit\" id='" + objID + "' >"+ title + " " + url +"</li>"
+            return htmlText
+        }
+
         function getPostingData(listId){
             console.log("getting...data");
             var newApiString = username + ":" + userApikey
@@ -92,7 +103,8 @@
                     var objectArray = data.objects;
                     $.each(objectArray, function(){
                         var listItemSingle = $(this);
-                        $(listId).append("<li class=\"ui-li-static ui-body-inherit\">"+listItemSingle[0].post+"</li>" );
+                        htmlTextResult = parseData(listItemSingle);
+                        $(listId).append(htmlTextResult);
                         console.log($(this))
                     })
                 },
@@ -143,6 +155,7 @@
 
 <span id="postError" style="color:red;"></span></hr>
 <input type="text" id="postText" />
+<input type="text" id="urlLink" />
 <input type="submit" id="newRecord"/>
 
 </div>
