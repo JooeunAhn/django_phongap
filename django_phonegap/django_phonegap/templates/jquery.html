@@ -2,6 +2,13 @@
 $(document).ready(function(){
     $username = ""
     $userApikey = ""
+    var host = "http://localhost:8000"
+
+    $("#submitHost").click(function(e) {
+      e.preventDefault();
+      host = $("#host").val();
+      });
+
     $("#submit").click(function(e){
         e.preventDefault();
         var submitBTN = $(this)
@@ -9,7 +16,7 @@ $(document).ready(function(){
         username = $("#username").val()
         var password = $("#password").val()
         var encodedString = btoa(username + ":" + password)
-        var endPoint = "http://localhost:8000/api/v1/login/?format=json"
+        var endPoint = host + "/api/v1/login/?format=json"
         $.ajax({
             type: "GET",
             url: endPoint,
@@ -31,7 +38,7 @@ $(document).ready(function(){
 
 
     function getHtmlPageForPost(title, id, content){
-        var htmlPage = "<div class='sectionHiddenDiv' data-role=\"page\" id=\"page-"+id+"\"><div data-role=\"header\"><h1>" + title + "</h1></div><!-- /header --><div role=\"main\" class=\"ui-content\"><h2>"+ title +"</h2>"+ content +"</div><!-- /content --><div data-role=\"footer\" data-theme=\"a\"><h4>Page Footer</h4></div><!-- /footer --></div><!-- /page one -->";
+        var htmlPage = "<div class='sectionHiddenDiv' data-role=\"page\" id=\"page-"+id+"\"><div data-role=\"header\"><h1>" + title + "</h1></div><!-- /header --><div role=\"main\" class=\"ui-content\"><h2>"+ title +"</h2>"+ content +"<a href='#listPage'>BackTotheList</a></div><!-- /content --><div data-role=\"footer\" data-theme=\"a\"><h4>Page Footer</h4></div><!-- /footer --></div><!-- /page one -->";
         return htmlPage;
     }
 
@@ -55,7 +62,7 @@ $(document).ready(function(){
     $("#test").click(function(e){
         e.preventDefault();
         var newApiString = username + ":" + userApikey
-        var endPoint = "http://localhost:8000/api/v1/posting/"
+        var endPoint = host +"/api/v1/posting/"
         var postingData = $("#postText").val()
         var urlLink = $("#urlLink").val()
         if (postingData.length >= 1 && urlLink.length != 1){
@@ -119,7 +126,7 @@ $(document).ready(function(){
     function getPostingData(listId){
         console.log("getting...data");
         var newApiString = username + ":" + userApikey
-        var endPoint = "http://localhost:8000/api/v1/posting/"
+        var endPoint = host+"/api/v1/posting/"
         var data = JSON.stringify({})
         $.ajax({
             type: "GET",

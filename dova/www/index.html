@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>YouTube video</title>
+    <meta name="viewport" content="width=device-width, user-scalable=no">
+    <meta charset="utf-8">
+    <title>Hustle real hard</title>
+    <link rel="stylesheet" href="http://demos.jquerymobile.com/1.4.5/css/themes/default/jquery.mobile-1.4.5.min.css">
+    <link rel="stylesheet" href="http://demos.jquerymobile.com/1.4.5/_assets/css/jqm-demos.css">
+    <script src="http://demos.jquerymobile.com/1.4.5/js/jquery.js"></script>
+    <script src="http://demos.jquerymobile.com/1.4.5/_assets/js/index.js"></script>
+    <script src="http://demos.jquerymobile.com/1.4.5/js/jquery.mobile-1.4.5.min.js"></script>
+    <script>
+
+    $(document).ready(function() {
+    // are we running in native app or in a browser?
+    window.isphone = false;
+    if(document.URL.indexOf("http://") === -1
+        && document.URL.indexOf("https://") === -1) {
+        window.isphone = true;
+    }
+
+    if( window.isphone ) {
+        document.addEventListener("deviceready", onDeviceReady, false);
+        onDeviceReady();
+    } else {
+        onDeviceReady();
+    }
+    });
+
+    function onDeviceReady(){
+        $username = ""
+        $userApikey = ""
+        var host = ""
+        $("#submitHost").click(function(e) {
+          e.preventDefault();
+          host = $("#host").val();
+          });
+        $("#submit").click(function(e){
+            e.preventDefault();
+            var submitBTN = $(this)
+            submitBTN.attr("disabled", "disabled")
+            username = $("#username").val()
+            var password = $("#password").val()
+            var encodedString = btoa(username + ":" + password)
+            var endPoint = host + "/api/v1/login/?format=json"
+            $.ajax({
+                type: "GET",
+                url: endPoint,
+                data: {},
+                success: function(data){
+                    userApikey = data.objects[0].api_key
+                    $.mobile.navigate("#listPage");
+                },
+                beforeSend: function(xhr){
+                    xhr.setRequestHeader("Authorization", "Basic " + encodedString)
+                },
+                error: function(data){
+                },
+                complete: function(){
+                    submitBTN.prop("disabled", false)
+                }
+            })
+        });
+
+        function getHtmlPageForPost(title, id, content){
+            var htmlPage = "<div class='sectionHiddenDiv' data-role=\"page\" id=\"page-"+id+"\"><div data-role=\"header\"><h1>" + title + "</h1></div><!-- /header --><div role=\"main\" class=\"ui-content\"><h2>"+ title +"</h2>"+ content +"<a href='#listPage'>BackTotheList</a></div><!-- /content --><div data-role=\"footer\" data-theme=\"a\"><h4>Page Footer</h4></div><!-- /footer --></div><!-- /page one -->";
+            return htmlPage;
+        }
+
+        function getHtmlListPageForRefresh(){
+            var htmlPage = "<div data-role=\"page\" id=\"listPage\" data-theme=\"a\"><div data-role=\"header\"><h1>list Page</h1></div><!-- /header --><div role=\"main\" class=\"ui-content\" ><ul data-role=\"listview\" id=\"listPostings\"><li>Item 1</li><li>Item 2</li></ul></div><!-- /content --><div data-role=\"footer\"><h4>Page Footer</h4></div><!-- /footer --></div><!-- /page two -->"
+            return htmlPage;
+        }
+
+        function convertToYoutube(youtubeShareLink){
+            var embedCode = '<iframe width="100%" height="215" src="http://www.youtube.com/embed/'+youtubeShareLink+'?rel=0&amp;controls=0&amp;showinfo=0" frameborder="0" allowfullscreen></iframe>'
+            return embedCode
+            }
+
+
+        function YoutubeEmbed(object){
+            var url = object[0].url;
+            var newUrl = url.match(/([A-Za-z0-9_\-]{11})/)[0];
+            var youTubeData = convertToYoutube(newUrl);
+            return youTubeData
+        }
+
+        $("#test").click(function(e){
+            e.preventDefault();
+            var newApiString = username + ":" + userApikey
+            var endPoint = host + "/api/v1/posting/";
+            var postingData = $("#postText").val()
+            var urlLink = $("#urlLink").val()
+            if (postingData.length >= 1 && urlLink.length != 1){
+                $("#postError").fadeOut();
+                var data = JSON.stringify({
+                    "title":postingData,
+                    "url": urlLink,
+                });
+                $.ajax({
+                    type: "POST",
+                    url: endPoint,
+                    data: data,
+                    contentType: "application/json",
+                    dataType:"json",
+                    success: function(data){
+                        console.log(data);
+                        $("#listPostings").prepend("<li>"+postingData+" "+urlLink +"</li>")
+                    },
+                    beforeSend: function(xhr){
+                        xhr.setRequestHeader("Authorization", "ApiKey " + newApiString)
+                    },
+                    error: function(data){
+                        if (data.responseJSON){
+                            $("#postError").fadeIn();
+                            var theError = data.responseJSON.posting;
+                            console.log(theError);
+                            $.each(theError, function(key, value){
+                                console.log(key);
+                                console.log(value);
+                                $("#postError").text(value);
+                            });
+                        }
+                        else {
+                            var newUrl = urlLink.match(/([A-Za-z0-9_\-]{11})/)[0];
+                            var youTubeData = convertToYoutube(newUrl);
+                            var num = $(".sectionHiddenDiv:last-child").attr("id");
+                            if(num){
+                                var num = num.slice(5);
+                                num++;
+                            }
+                            else{
+                                num = 1;
+                            }
+                            $("#listPostings").prepend("<li class=\"ui-li-static ui-body-inherit\"> <a href=#page-"+num+">"+postingData+"</a></li");
+                            var htmlPage = getHtmlPageForPost(postingData, num, youTubeData);
+                            $("body").append(htmlPage);
+                        }
+
+                    },
+                    complete: function(data){
+                        console.log("finished")
+                    }
+                })
+            }
+            else{
+                $("#postError").fadeIn();
+                $("#postError").text("empty");
+            }
+        });
+
+        function getPostingData(listId){
+            console.log("getting...data");
+            var newApiString = username + ":" + userApikey
+            var endPoint = host +"/api/v1/posting/"
+            var data = JSON.stringify({})
+            $.ajax({
+                type: "GET",
+                url: endPoint,
+                data: data,
+                contentType: "application/json",
+                success: function(data){
+                    var objectArray = data.objects;
+                    var i = 0;
+                    $(listId).html(getHtmlListPageForRefresh());
+                    $.each(objectArray, function(){
+                        var listItemSingle = $(this);
+                        i++;
+                        var youtubeEmbedUrl = YoutubeEmbed(listItemSingle);
+                        var htmlPage = getHtmlPageForPost(listItemSingle[0].title, i, youtubeEmbedUrl)
+                        $("body").append(htmlPage);
+                        $(listId).append("<li class=\"ui-li-static ui-body-inherit\"><a href='#page-"+ i +"'>" + listItemSingle[0].title+"</a></li>" );
+                    })
+                },
+                beforeSend: function(xhr){
+                    xhr.setRequestHeader("Authorization", "ApiKey " + newApiString)
+                },
+                error: function(data){
+                    console.log(data);
+                },
+                complete: function(data){
+                    console.log(data);
+                }
+            })
+        }
+
+
+        $(window).on("navigate", function(event){
+            var pageId = $.mobile.activePage.attr("id")
+            if (pageId == "two"){
+                console.log(userApikey);
+                $("#" + pageId + " .ui-content").html("<form id='postForm' ><input type='text' id='postText'/></form>");
+            }
+            else if(pageId=="listPage"){
+                getPostingData("#listPostings");
+            }
+            });
+        };
+
+</script>
+</head>
+
+<body>
+
+<!-- Start of first page: #one -->
+<div data-role="page" id="one">
+
+    <div data-role="header">
+        <h1>Multi-page</h1>
+    </div><!-- /header -->
+
+    <div role="main" class="ui-content">
+        <h2>Login</h2>
+
+        <form>
+            <input type="text" name="username" id="username"/>
+            <input type="password" name="password" id="password"/>
+            <input type="submit" value="Login" id="submit"/>
+        </form>
+        <h3>Show internal pages:</h3>
+        <p><a href="#two" class="ui-btn ui-shadow ui-corner-all">Show page "two"</a></p>
+        <p><a href="#popup" class="ui-btn ui-shadow ui-corner-all" data-rel="dialog" data-transition="pop">Show page "popup" (as a dialog)</a></p>
+    </div><!-- /content -->
+
+    <div data-role="footer" data-theme="a">
+
+        <h4>Page Footer</h4>
+    </div><!-- /footer -->
+</div><!-- /page one -->
+
+<!-- Start of second page: #two -->
+<div data-role="page" id="two" data-theme="a">
+
+    <div data-role="header">
+        <h1>Two</h1>
+    </div><!-- /header -->
+
+    <div role="main" class="ui-content">
+        <h2>Two</h2>
+        <p>I have an id of "two" on my page container. I'm the second page container in this multi-page template.</p>
+        <p>Notice that the theme is different for this page because we've added a few <code>data-theme</code> swatch assigments here to show off how flexible it is. You can add any content or widget to these pages, but we're keeping these simple.</p>
+        <p><a href="#one" data-direction="reverse" class="ui-btn ui-shadow ui-corner-all ui-btn-b">Back to page "one"</a></p>
+
+    </div><!-- /content -->
+
+    <div data-role="footer">
+    <a href="#" id="newRecord">Add New Record</a>
+        <h4>Page Footer</h4>
+    </div><!-- /footer -->
+</div><!-- /page two -->
+
+<div data-role="page" id="listPage" data-theme="a">
+    <div data-role="header">
+        <h1>list Page</h1>
+    </div><!-- /header -->
+    <div role="main" class="ui-content" >
+        <ul data-role="listview" id="listPostings">
+        </ul>
+    </div><!-- /content -->
+    <div data-role="footer">
+        <h4>Page Footer</h4>
+        <a href="#one">BacktoLogin</a>
+    </div><!-- /footer -->
+        <span id="postError" style="color:red;"></span></hr>
+        <form>
+            <input type="text" id="postText" value="title">
+            <input type="text" id="urlLink" value="YoutubeURL">
+            <input type="button" id="test" value="New Post">
+        </form>
+</div><!-- /page two -->
+
+
+
+<!-- Start of third page: #popup -->
+<div data-role="page" id="popup">
+
+    <div data-role="header" data-theme="b">
+        <h1>Dialog</h1>
+    </div><!-- /header -->
+
+    <div role="main" class="ui-content">
+      <h2>Check Host</h2>
+      <form>
+        <input type="text" id="host">
+        <input type="submit" value="submit" id="submitHost">
+      </form>
+        <p><a href="#one" data-rel="back" class="ui-btn ui-shadow ui-corner-all ui-btn-inline ui-icon-back ui-btn-icon-left">Back to Login</a></p>
+    </div><!-- /content -->
+
+    <div data-role="footer">
+        <h4>Page Footer</h4>
+    </div><!-- /footer -->
+</div><!-- /page popup -->
+
+</body>
+</html>
